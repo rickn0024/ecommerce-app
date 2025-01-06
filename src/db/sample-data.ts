@@ -1,4 +1,40 @@
+import { hashSync } from 'bcrypt-ts-edge';
+
 const sampleData = {
+  users: [
+    {
+      name: 'Dick Alan',
+      email: 'admin@dickalan.com',
+      password: hashSync('123456', 10),
+      address: {
+        street: '12345 Main St',
+        unit: '',
+        city: 'Valencia',
+        state: 'CA',
+        postalCode: '123456',
+      },
+      role: 'admin',
+    },
+    {
+      name: 'Jane',
+      email: 'user@dickalan.com',
+      password: hashSync('123456', 10),
+      address: {
+        street: '12345 Main St',
+        unit: '',
+        city: 'Valencia',
+        state: 'CA',
+        postalCode: '123456',
+      },
+      role: 'user',
+    },
+    {
+      name: 'Max',
+      email: 'max@dickalan.com',
+      password: hashSync('123456', 10),
+      role: 'user',
+    },
+  ],
   products: [
     {
       name: 'Polo Sporting Stretch Shirt',
