@@ -6,3 +6,21 @@ export const SERVER_URL =
 export const LATEST_PRODUCTS_LIMIT = Number(
   process.env.LATEST_PRODUCTS_LIMIT || 4,
 );
+
+export const shippingAddressDefaultValues = {
+  fullName: '',
+  streetAddress: '',
+  city: '',
+  state: '',
+  postalCode: '',
+  country: '',
+};
+
+export const PAYMENT_METHODS = (process.env.NEXT_PUBLIC_PAYMENT_METHODS?.split(
+  ',',
+) as string[]) || ['PayPal', 'CreditCard', 'CashOnDelivery'];
+
+export const DEFAULT_PAYMENT_METHOD =
+  process.env.NEXT_PUBLIC_DEFAULT_PAYMENT_METHOD || 'PayPal';
+
+export const PAGE_SIZE = Number(process.env.NEXT_PUBLIC_PAGE_SIZE || 12);
