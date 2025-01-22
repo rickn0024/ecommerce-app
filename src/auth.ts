@@ -2,11 +2,10 @@ import NextAuth from 'next-auth';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from '@/db/prisma';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import { compareSync } from 'bcrypt-ts-edge';
 import type { NextAuthConfig, Session, User } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
-import { compare } from './lib/encrypt';
 
 export const config = {
   pages: {
@@ -38,7 +37,7 @@ export const config = {
         if (
           user &&
           user.password &&
-          (await compare(credentials.password as string, user.password))
+          compareSync(credentials.password as string, user.password)
         ) {
           return {
             id: user.id,
@@ -92,11 +91,11 @@ export const config = {
         token.id = user.id;
         token.role = user.role;
 
-        // If use has no name then use email as name
+        // If user has no name, use email as the name
         if (user.name === 'NO_NAME') {
           token.name = user.email!.split('@')[0];
 
-          // update the db with the email as name
+          // Update the database with email as the name
           await prisma.user.update({
             where: {
               id: user.id,
@@ -106,6 +105,7 @@ export const config = {
             },
           });
         }
+
         if (trigger === 'signIn' || trigger === 'signUp') {
           const cookiesObject = await cookies();
           const sessionCartId = cookiesObject.get('sessionCartId')?.value;
@@ -141,54 +141,6 @@ export const config = {
       }
 
       return token;
-    },
-    authorized({
-      request,
-      auth,
-    }: {
-      request: NextRequest;
-      auth: Session | null;
-    }) {
-      // Array of regex patterns to match paths we want to protect
-      const protectedPaths = [
-        /\/shipping-address/,
-        /\/payment-method/,
-        /\/place-order/,
-        /\/profile/,
-        /\/user\/(.*)/,
-        /\/order\/(.*)/,
-        /\/admin/,
-      ];
-
-      // Check if the current path is protected from request URL pathname
-      const { pathname } = request.nextUrl;
-
-      // Check if the user is authenticated and access is allowed
-      if (!auth && protectedPaths.some(path => path.test(pathname)))
-        return false;
-
-      // Check for session cart cookie
-      if (!request.cookies.get('sessionCartId')) {
-        // Generate a new session cart id cookie
-        const sessionCartId = crypto.randomUUID();
-
-        // Clone request headers
-        const newRequestHeaders = new Headers(request.headers);
-
-        // Create new request and add to new headers
-        const response = NextResponse.next({
-          request: {
-            headers: newRequestHeaders,
-          },
-        });
-
-        // Set newly generated sessionCartId in the response cookie
-        response.cookies.set('sessionCartId', sessionCartId);
-
-        return response;
-      } else {
-        return true;
-      }
     },
   },
 } satisfies NextAuthConfig;
