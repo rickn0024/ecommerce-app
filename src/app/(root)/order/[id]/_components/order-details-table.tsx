@@ -13,7 +13,7 @@ import { formatCurrency, formatDateTime, formatId } from '@/lib/utils';
 import { Order } from '@/types';
 import Image from 'next/image';
 import Link from 'next/link';
-import React from 'react';
+import React, { useTransition } from 'react';
 import {
   PayPalButtons,
   PayPalScriptProvider,
@@ -22,15 +22,20 @@ import {
 import {
   createPaypalOrder,
   approvePaypalOrder,
+  updateOrderToPaidCOD,
+  deliverOrder,
 } from '@/lib/actions/order.actions';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 
 export default function OrderDetailsTable({
   order,
   paypalClientId,
+  isAdmin,
 }: {
   order: Order;
   paypalClientId: string;
+  isAdmin: boolean;
 }) {
   const {
     id,
@@ -82,6 +87,56 @@ export default function OrderDetailsTable({
     });
   };
 
+  // Mark as Paid Button
+  const MarkedAsPaidButton = () => {
+    const [isPending, startTransition] = useTransition();
+    const { toast } = useToast();
+
+    return (
+      <Button
+        type="button"
+        disabled={isPending}
+        onClick={() =>
+          startTransition(async () => {
+            const res = await updateOrderToPaidCOD(order.id);
+
+            toast({
+              variant: res.success ? 'default' : 'destructive',
+              description: res.message,
+            });
+          })
+        }
+      >
+        {isPending ? 'Processing...' : 'Mark as Paid'}
+      </Button>
+    );
+  };
+
+  // Mark as Delivered Button
+  const MarkedAsDeliveredButton = () => {
+    const [isPending, startTransition] = useTransition();
+    const { toast } = useToast();
+
+    return (
+      <Button
+        type="button"
+        disabled={isPending}
+        onClick={() =>
+          startTransition(async () => {
+            const res = await deliverOrder(order.id);
+
+            toast({
+              variant: res.success ? 'default' : 'destructive',
+              description: res.message,
+            });
+          })
+        }
+      >
+        {isPending ? 'Processing...' : 'Mark as Delivered'}
+      </Button>
+    );
+  };
+
   return (
     <div>
       <h1 className="py-4 text-2xl">Order {formatId(id)}</h1>
@@ -111,7 +166,7 @@ export default function OrderDetailsTable({
               </p>
               {isDelivered ? (
                 <Badge variant="secondary">
-                  Delivered {formatDateTime(deliveredAt!).dateTime}
+                  Delivered at {formatDateTime(deliveredAt!).dateTime}
                 </Badge>
               ) : (
                 <Badge variant="destructive">Not Delivered</Badge>
@@ -195,6 +250,12 @@ export default function OrderDetailsTable({
                   </PayPalScriptProvider>
                 </div>
               )}
+              {/** COD Button */}
+              {isAdmin && !isPaid && paymentMethod === 'CashOnDelivery' && (
+                <MarkedAsPaidButton />
+              )}
+              {/** Deliver Button */}
+              {isAdmin && isPaid && !isDelivered && <MarkedAsDeliveredButton />}
             </CardContent>
           </Card>
         </div>
