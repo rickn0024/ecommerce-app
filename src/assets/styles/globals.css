@@ -101,3 +101,8 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Specific selector for overriding the ring */
+.focus-within\:ring-2:focus-within {
+  box-shadow: none !important;
+}
