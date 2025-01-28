@@ -27,15 +27,18 @@ import {
 } from '@/lib/actions/order.actions';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import StripePayment from './stripe-payment';
 
 export default function OrderDetailsTable({
   order,
   paypalClientId,
   isAdmin,
+  stripeClientSecret,
 }: {
   order: Order;
   paypalClientId: string;
   isAdmin: boolean;
+  stripeClientSecret: string | null;
 }) {
   const {
     id,
@@ -234,6 +237,7 @@ export default function OrderDetailsTable({
                 <div>Total</div>
                 <div>{formatCurrency(totalPrice)}</div>
               </div>
+
               {/** PayPal Button */}
               {!isPaid && paymentMethod === 'PayPal' && (
                 <div>
@@ -250,6 +254,18 @@ export default function OrderDetailsTable({
                   </PayPalScriptProvider>
                 </div>
               )}
+
+              {/** Stripe Payment */}
+              {!isPaid &&
+                paymentMethod === 'CreditCard' &&
+                stripeClientSecret && (
+                  <StripePayment
+                    priceInCents={Number(order.totalPrice) * 100}
+                    orderId={order.id}
+                    clientSecret={stripeClientSecret}
+                  />
+                )}
+
               {/** COD Button */}
               {isAdmin && !isPaid && paymentMethod === 'CashOnDelivery' && (
                 <MarkedAsPaidButton />

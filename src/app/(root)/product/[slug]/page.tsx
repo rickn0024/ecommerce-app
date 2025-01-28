@@ -7,6 +7,9 @@ import React from 'react';
 import ProductImages from '@/components/shared/product/product-images';
 import AddToCart from '@/components/shared/product/add-to-cart';
 import { getMyCart } from '@/lib/actions/cart.actions';
+import ReviewList from './_components/review-list';
+import { auth } from '@/auth';
+import Rating from '@/components/shared/product/rating';
 
 export default async function ProductDetailsPage(props: {
   params: Promise<{ slug: string }>;
@@ -15,6 +18,9 @@ export default async function ProductDetailsPage(props: {
 
   const product = await getProductBySlug(slug);
   if (!product) notFound();
+
+  const session = await auth();
+  const userId = session?.user?.id;
 
   const cart = await getMyCart();
 
@@ -31,9 +37,8 @@ export default async function ProductDetailsPage(props: {
                 {product.brand} {product.category}
               </p>
               <h1 className="h3-bold">{product.name}</h1>
-              <p>
-                {product.rating} of {product.numReviews}
-              </p>
+              <Rating value={Number(product.rating)} />
+              <p>{product.numReviews} reviews</p>
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                 <ProductPrice
                   value={Number(product.price)}
@@ -83,6 +88,14 @@ export default async function ProductDetailsPage(props: {
             </Card>
           </div>
         </div>
+      </section>
+      <section className="mt-10">
+        <h2 className="h2-bold">Customer Reviews</h2>
+        <ReviewList
+          userId={userId || ''}
+          productId={product.id}
+          productSlug={product.slug}
+        />
       </section>
     </>
   );
