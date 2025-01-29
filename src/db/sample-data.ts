@@ -51,7 +51,7 @@ const sampleData = {
       numReviews: 10,
       stock: 5,
       isFeatured: true,
-      banner: 'banner-1.jpg',
+      banner: '/images/banner-1.jpg',
     },
     {
       name: 'Brooks Brothers Long Sleeved Shirt',
@@ -68,7 +68,7 @@ const sampleData = {
       numReviews: 8,
       stock: 10,
       isFeatured: true,
-      banner: 'banner-2.jpg',
+      banner: '/images/banner-2.jpg',
     },
     {
       name: 'Tommy Hilfiger Classic Fit Dress Shirt',

@@ -11,7 +11,7 @@ export const authConfig = {
       request: NextRequest;
       auth: Session | null;
     }) {
-      // Array of regex patterns of paths we want to protect
+      // Array of regex patterns to match paths we want to protect
       const protectedPaths = [
         /\/shipping-address/,
         /\/payment-method/,
@@ -21,32 +21,29 @@ export const authConfig = {
         /\/order\/(.*)/,
         /\/admin/,
       ];
-
-      // Get pathname from the req URL object
+      // Check if the current path is protected from request URL pathname
       const { pathname } = request.nextUrl;
-
-      // Check if user is not authenticated and accessing a protected path
-      if (!auth && protectedPaths.some(p => p.test(pathname))) return false;
-
+      // Check if the user is authenticated and access is allowed
+      if (!auth && protectedPaths.some(path => path.test(pathname)))
+        return false;
       // Check for session cart cookie
       if (!request.cookies.get('sessionCartId')) {
-        // Generate new session cart id cookie
+        // Generate a new session cart id cookie
         const sessionCartId = crypto.randomUUID();
-
-        // Create new response and add the new headers
+        // Clone request headers
+        const newRequestHeaders = new Headers(request.headers);
+        // Create new request and add to new headers
         const response = NextResponse.next({
           request: {
-            headers: new Headers(request.headers),
+            headers: newRequestHeaders,
           },
         });
-
-        // Set newly generated sessionCartId in the response cookies
+        // Set newly generated sessionCartId in the response cookie
         response.cookies.set('sessionCartId', sessionCartId);
-
         return response;
+      } else {
+        return true;
       }
-
-      return true;
     },
   },
 } satisfies NextAuthConfig;
